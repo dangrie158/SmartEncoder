@@ -5,9 +5,9 @@
 "2";"100n";"C-EUC0402";"C0402";"C1, C2";"CAPACITOR, European symbol";"C1525";"18";"C";
 "4";"2mm";"MOUNT-PAD2MM";"2,0-PAD";"H1, H2, H3, H4";"";"";"";"";
 "3";"4k7";"R-EU_R0402";"R0402";"R17, R18, R19";"RESISTOR, European symbol";"C25900";"0";"R";
-"1";"ATTINY2313A";"ATTINY2313A";"QFN50P400X400X80-21T260N";"U1";"";"";"";"";
+"1";"ATTINY2313A";"ATTINY2313A";"QFN50P400X400X80-21T260N";"U1";"";"C185530";"";"";
 "1";"AW9523B";"AW9523B";"QFN50P400X400X80-25T270N";"U2";"";"C148077";"";"";
-"1";"ICSP";"MINI-ISP-LOCK";"MINI-ISP-LOCK";"J3";"";"";"";"";
+"1";"ICSP";"MINI-ISP-LABELS";"MINI-ISP-LABELS";"J3";"";"";"";"";
 "1";"JUMPER-SMT_3_1-NC_TRACE_SILK";"JUMPER-SMT_3_1-NC_TRACE_SILK";"SMT-JUMPER_3_1-NC_TRACE_SILK";"JP1";"Normally closed trace jumper (1 of 2 connections)";"";"";"";
 "1";"MODE";"JUMPER-SMT_3_NO_SILK";"SMT-JUMPER_3_NO_SILK";"JP2";"Normally open jumper";"";"";"";
 "1";"OUT";"JST-XH4";"JST-4-PTH-VERT";"J1";"";"";"";"";
