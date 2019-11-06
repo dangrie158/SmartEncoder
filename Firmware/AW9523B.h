@@ -1,8 +1,13 @@
+#ifndef __AW9523B_H__
+#define __AW9523B_H__
+
 #include <stdint.h>
-#include <Arduino.h>
-#include <Wire.h>
+#include <util/delay.h>
+#include "Wire.h"
 
 // Used to specify that pins should be left in initial state after power up
+#define INPUT 0
+#define OUTPUT 1
 #define UNCHANGED 0x55
 #define LED_MODE 0x56
 
@@ -39,23 +44,24 @@
 class AW9523B
 {
 public:
-  AW9523B(uint8_t address, uint8_t resetPin, uint8_t intPin = 0, uint8_t initialState = 0xFF, uint8_t imax = IMAX_19MA) : addr(address),
-                                                                                                                  rstn(resetPin),
-                                                                                                                  intn(intPin)
+  AW9523B(uint8_t address, uint8_t resetPin, volatile uint8_t* rstDDR = 0, volatile uint8_t* rstPORT = 0, uint8_t intPin = 0, uint8_t initialState = 0xFF, uint8_t imax = IMAX_19MA) : addr(address),
+                                                                                                                          rstn(resetPin),
+                                                                                                                          intn(intPin),
+                                                                                                                          rstPORT(rstPORT)
   {
     // Get the chip out of reset mode
     if (this->rstn != 0)
     {
-      ::pinMode(this->rstn, OUTPUT);
-      ::digitalWrite(this->rstn, HIGH);
+      *rstDDR |= (1 << rstn);
+      *rstPORT |= (1 << rstn);
     }
 
-    if (this->intn != 0)
-    {
-      ::pinMode(this->intn, INPUT_PULLUP);
-    }
+    // if (this->intn != 0)
+    // {
+    //   ::pinMode(this->intn, INPUT_PULLUP);
+    // }
 
-    Wire.begin();
+    Wire::init();
 
     // set the global config to push-pull output
     // mode and the chosen I_MAX setting
@@ -78,6 +84,13 @@ public:
     }
   }
 
+  void reset()
+  {
+      *rstPORT &= ~(1 << this->rstn);
+      _delay_ms(1);
+      *rstPORT |= (1 << this->rstn);
+  }
+
   void pinMode(uint8_t pin, uint8_t mode)
   {
     uint8_t reg = this->getRegisterAddr(CONFIG_PORT0, pin);
@@ -89,6 +102,16 @@ public:
     uint8_t ledModeVal = mode == LED_MODE ? 1 : 0;
     uint8_t ledModeRegister = this->getRegisterAddr(LED_MODE_PORT0, pin);
     this->setRegisterBit(ledModeRegister, bit, ledModeVal);
+  }
+
+  void portMode(uint8_t port, uint8_t mode){
+    uint8_t reg = port == 0 ? CONFIG_PORT0 : CONFIG_PORT1;
+    uint8_t ledReg = port == 0 ? LED_MODE_PORT0 : LED_MODE_PORT1;
+    uint8_t val = mode == INPUT ? 0xFF : 0x00;
+    uint8_t ledModeVal = mode == LED_MODE ? 0xFF : 0x00;
+
+    this->writeRegister(reg, val);
+    this->writeRegister(ledReg, ledModeVal);
   }
 
   void digitalWrite(uint8_t pin, uint8_t val)
@@ -117,24 +140,25 @@ private:
   uint8_t addr;
   uint8_t rstn;
   uint8_t intn;
+  volatile uint8_t* rstPORT;
 
   uint8_t readRegister(uint8_t reg)
   {
-    Wire.beginTransmission(this->addr);
-    Wire.write(reg);
-    Wire.endTransmission();
-    Wire.requestFrom(this->addr, (uint8_t)1);
-    while (Wire.available() == 0)
-      ;
-    return Wire.read();
+    Wire::start(this->addr, 0);
+
+    Wire::write(reg);
+    Wire::restart(this->addr, (uint8_t)1);
+    uint8_t val =  Wire::read();
+    Wire::stop();
+    return val;
   }
 
   void writeRegister(uint8_t reg, uint8_t val)
   {
-    Wire.beginTransmission(this->addr);
-    Wire.write(reg);
-    Wire.write(val);
-    Wire.endTransmission();
+    Wire::start(this->addr, 0);
+    Wire::write(reg);
+    Wire::write(val);
+    Wire::stop();
   }
 
   void setRegisterBit(uint8_t reg, uint8_t bit, uint8_t val)
@@ -166,3 +190,5 @@ private:
     return pin % 8;
   }
 };
+
+#endif //__AW9523B_H__

@@ -74,3 +74,14 @@ html/
 *.i*86
 *.x86_64
 *.hex
+
+*.eep
+*.sym
+*.o
+*.map
+*.lst
+*.lss
+*.elf
+
+
+**/*.vscode
