@@ -163,4 +163,6 @@ private:
     }
 };
 
+int Wire::numReadBytes;
+
 #endif
