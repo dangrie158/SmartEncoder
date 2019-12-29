@@ -37,7 +37,14 @@ public:
 
     static uint8_t available()
     {
-        return rx_write_pos != rx_read_pos;
+        if (rx_write_pos > rx_read_pos)
+        {
+            return rx_write_pos - rx_read_pos;
+        }
+        else
+        {
+            return (RX_BUF_SIZE - rx_read_pos) + rx_write_pos;
+        }
     }
 
     static unsigned char getc()
@@ -58,11 +65,6 @@ public:
             putc(*data);
             data++;
         }
-    }
-
-    static void write(uint8_t data)
-    {
-        Serial::write(&data);
     }
 
     friend void USART_RX_vect(void);

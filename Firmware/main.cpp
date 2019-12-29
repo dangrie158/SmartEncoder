@@ -104,6 +104,14 @@ void loadSettings(Settings *defaults)
     }
 }
 
+void serialStateOutput()
+{
+    Serial::putc((settings.state >> 8) | 0xFF);
+    Serial::putc(settings.state | 0xFF);
+    Serial::putc((PINB >> ENC_SW) & 1);
+    Serial::putc('\n');
+}
+
 void setup()
 {
     EEPROM::init();
@@ -154,8 +162,7 @@ void setup()
     if (conf.output == BootConfig::O_SERIAL)
     {
         Serial::begin(9600);
-        Serial::write((uint8_t)((settings.state >> 8) | 0xFF));
-        Serial::write((uint8_t)(settings.state | 0xFF));
+        serialStateOutput();
     }
 
     initEncoderServiceTimer();
@@ -163,6 +170,14 @@ void setup()
 
 void loop()
 {
+    if (Serial::available() == 3)
+    {
+        uint16_t newState = ((uint16_t)Serial::getc()) << 8 | Serial::getc();
+        if (Serial::getc() == '\n')
+        {
+            settings.state = newState;
+        }
+    }
     static uint8_t encLineState = false;
 
     int8_t steps = encoder.getValue();
@@ -188,8 +203,7 @@ void loop()
     {
         if (steps != 0)
         {
-            Serial::write((uint8_t)((settings.state >> 8) | 0xFF));
-            Serial::write((uint8_t)(settings.state | 0xFF));
+            serialStateOutput();
         }
     }
     else
@@ -284,7 +298,7 @@ void loop()
 int main()
 {
     setup();
-    while (1)
+    while (true)
     {
         loop();
     }
