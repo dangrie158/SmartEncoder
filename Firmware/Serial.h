@@ -60,9 +60,14 @@ public:
         }
     }
 
+    static void write(uint8_t data)
+    {
+        Serial::write(&data);
+    }
+
     friend void USART_RX_vect(void);
 
-public:
+private:
     static unsigned char rx_buf[RX_BUF_SIZE];
     static uint8_t rx_read_pos, rx_write_pos;
 
