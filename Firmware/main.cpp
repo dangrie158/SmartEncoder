@@ -126,7 +126,7 @@ void setup()
 
 void loop()
 {
-    /*static uint8_t encLineState = false;
+    static uint8_t encLineState = false;
     static uint16_t lastEncVal = 0;
 
     int8_t steps = encoder.getValue() - lastEncVal;
@@ -176,42 +176,54 @@ void loop()
     }
 
     //update the LED display
+    steps = 1;
+    _delay_ms(50);
     settings.state += settings.stepSize * steps;
     if (conf.display == BootConfig::D_BAR)
     {
         uint8_t fullOnLeds = settings.state / (256 * NUM_LEDS);
-        uint8_t lastLEDState = settings.state % 256;
+        uint8_t lastLEDState = (((settings.state % (256 * NUM_LEDS)) / NUM_LEDS) * MAX_BRIGHT) / 256;
 
-        leds.analogWrite(fullOnLeds, lastLEDState);
-        while (fullOnLeds > 0)
+        for (uint8_t led = 0; led < NUM_LEDS; led++)
         {
-            leds.analogWrite(fullOnLeds - 1, 255);
-            fullOnLeds--;
+            if (led < fullOnLeds)
+            {
+                leds.analogWrite(NUM_LEDS - 1 - led, MAX_BRIGHT);
+            }
+            else if (led == fullOnLeds)
+            {
+                leds.analogWrite(NUM_LEDS - 1 - led, lastLEDState);
+            }
+            else
+            {
+                leds.analogWrite(NUM_LEDS - 1 - led, 0);
+            }
         }
     }
     else
     {
         uint8_t fullOnLed = settings.state / (256 * NUM_LEDS);
-        leds.analogWrite(fullOnLed, 255);
-        if (fullOnLed > 0)
-        {
-            leds.analogWrite(fullOnLed - 1, 255 - (settings.state % 256));
-        }
+        uint8_t nextLEDState = (((settings.state % (256 * NUM_LEDS)) / NUM_LEDS) * MAX_BRIGHT) / 256;
+        uint8_t prevLEDState = MAX_BRIGHT - nextLEDState;
 
-        if (fullOnLed < NUM_LEDS - 1)
+        for (uint8_t led = 0; led < NUM_LEDS; led++)
         {
-            leds.analogWrite(fullOnLed + 1, settings.state % 256);
+            if (led == fullOnLed)
+            {
+                leds.analogWrite(NUM_LEDS - 1 - led, MAX_BRIGHT);
+            }
+            else if (led == fullOnLed + 1)
+            {
+                leds.analogWrite(NUM_LEDS - 1 - led, nextLEDState);
+            }else if (led == fullOnLed - 1)
+            {
+                leds.analogWrite(NUM_LEDS - 1 - led, prevLEDState);
+            }else
+            {
+                leds.analogWrite(NUM_LEDS - 1 - led, 0);
+            }
         }
-    }*/
-
-    static uint8_t led = 0;
-    static uint8_t bright = 0;
-    leds.analogWrite(led, bright++);
-    if (bright == 255){
-        led += 1;
-        led %= NUM_LEDS;
     }
-    _delay_ms(10);
 }
 
 int main()
