@@ -8,5 +8,9 @@
         "/usr/local/Cellar/avr-gcc/8.3.0/lib/avr-gcc/8/gcc/avr/8.3.0/include-fixed",
         "/usr/local/Cellar/avr-gcc/8.3.0/lib/avr-gcc/8/gcc/avr/8.3.0/include"
     ],
-    "editor.formatOnSave": true
+    "C_Cpp.default.defines": [
+        "__AVR_ATtiny2313__"
+    ],
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true
 }
