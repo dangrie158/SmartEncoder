@@ -78,7 +78,7 @@ public:
 
       // if configured for LED mode, set the
       // register to enable led current drive
-      uint8_t ledModeState = initialState == LED_MODE ? 0xFF : 0x00;
+      uint8_t ledModeState = initialState == LED_MODE ? 0x00 : 0xFF;
       this->writeRegister(LED_MODE_PORT0, ledModeState);
       this->writeRegister(LED_MODE_PORT1, ledModeState);
     }
@@ -99,7 +99,7 @@ public:
     uint8_t val = mode == INPUT ? 1 : 0;
     this->setRegisterBit(reg, bit, val);
 
-    uint8_t ledModeVal = mode == LED_MODE ? 1 : 0;
+    uint8_t ledModeVal = mode == LED_MODE ? 0 : 1;
     uint8_t ledModeRegister = this->getRegisterAddr(LED_MODE_PORT0, pin);
     this->setRegisterBit(ledModeRegister, bit, ledModeVal);
   }
@@ -108,7 +108,7 @@ public:
     uint8_t reg = port == 0 ? CONFIG_PORT0 : CONFIG_PORT1;
     uint8_t ledReg = port == 0 ? LED_MODE_PORT0 : LED_MODE_PORT1;
     uint8_t val = mode == INPUT ? 0xFF : 0x00;
-    uint8_t ledModeVal = mode == LED_MODE ? 0xFF : 0x00;
+    uint8_t ledModeVal = mode == LED_MODE ? 0x00 : 0xFF;
 
     this->writeRegister(reg, val);
     this->writeRegister(ledReg, ledModeVal);
