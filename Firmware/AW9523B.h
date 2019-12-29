@@ -44,10 +44,10 @@
 class AW9523B
 {
 public:
-  AW9523B(uint8_t address, uint8_t resetPin, volatile uint8_t* rstDDR = 0, volatile uint8_t* rstPORT = 0, uint8_t intPin = 0, uint8_t initialState = 0xFF, uint8_t imax = IMAX_19MA) : addr(address),
-                                                                                                                          rstn(resetPin),
-                                                                                                                          intn(intPin),
-                                                                                                                          rstPORT(rstPORT)
+  AW9523B(uint8_t address, uint8_t resetPin, volatile uint8_t *rstDDR = 0, volatile uint8_t *rstPORT = 0, uint8_t intPin = 0, uint8_t imax = IMAX_19MA) : addr(address),
+                                                                                                                                                          rstn(resetPin),
+                                                                                                                                                          intn(intPin),
+                                                                                                                                                          rstPORT(rstPORT)
   {
     // Get the chip out of reset mode
     if (this->rstn != 0)
@@ -67,28 +67,13 @@ public:
     // mode and the chosen I_MAX setting
     uint8_t gcrVal = (1 << GPOMD) | imax;
     this->writeRegister(GCR, gcrVal);
-
-    if (initialState != UNCHANGED)
-    {
-      // a 1 in the config register indicates an input,
-      // while a 0 indicates an output.
-      uint8_t portState = initialState == INPUT ? 0xFF : 0x00;
-      this->writeRegister(CONFIG_PORT0, portState);
-      this->writeRegister(CONFIG_PORT1, portState);
-
-      // if configured for LED mode, set the
-      // register to enable led current drive
-      uint8_t ledModeState = initialState == LED_MODE ? 0x00 : 0xFF;
-      this->writeRegister(LED_MODE_PORT0, ledModeState);
-      this->writeRegister(LED_MODE_PORT1, ledModeState);
-    }
   }
 
   void reset()
   {
-      *rstPORT &= ~(1 << this->rstn);
-      _delay_ms(1);
-      *rstPORT |= (1 << this->rstn);
+    *rstPORT &= ~(1 << this->rstn);
+    _delay_ms(1);
+    *rstPORT |= (1 << this->rstn);
   }
 
   void pinMode(uint8_t pin, uint8_t mode)
@@ -104,7 +89,8 @@ public:
     this->setRegisterBit(ledModeRegister, bit, ledModeVal);
   }
 
-  void portMode(uint8_t port, uint8_t mode){
+  void portMode(uint8_t port, uint8_t mode)
+  {
     uint8_t reg = port == 0 ? CONFIG_PORT0 : CONFIG_PORT1;
     uint8_t ledReg = port == 0 ? LED_MODE_PORT0 : LED_MODE_PORT1;
     uint8_t val = mode == INPUT ? 0xFF : 0x00;
@@ -140,7 +126,7 @@ private:
   uint8_t addr;
   uint8_t rstn;
   uint8_t intn;
-  volatile uint8_t* rstPORT;
+  volatile uint8_t *rstPORT;
 
   uint8_t readRegister(uint8_t reg)
   {
@@ -148,7 +134,7 @@ private:
 
     Wire::write(reg);
     Wire::restart(this->addr, (uint8_t)1);
-    uint8_t val =  Wire::read();
+    uint8_t val = Wire::read();
     Wire::stop();
     return val;
   }
