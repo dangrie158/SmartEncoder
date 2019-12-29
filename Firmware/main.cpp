@@ -2,10 +2,11 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdlib.h>
-#include <limits.h>
+
 #include "AW9523B.h"
 #include "Encoder.h"
 #include "Serial.h"
+#include "EEPROM.h"
 
 #define MODE_PIN1 PB4 // PB4 (Display Mode Select)
 #define MODE_PIN2 PB3 // PB3 (Output Mode Select)
@@ -83,7 +84,7 @@ ISR(TIMER1_COMPA_vect)
 
 void saveSettings(Settings *defaults)
 {
-    //EEPROM.put(SETTINGS_START, *defaults);
+    EEPROM::writeBlock(SETTINGS_START, (uint8_t *)defaults, sizeof(Settings));
 }
 
 /**
@@ -93,11 +94,11 @@ void saveSettings(Settings *defaults)
  */
 void loadSettings(Settings *defaults)
 {
-    //EEPROM.get(SETTINGS_START, defaults);
+    EEPROM::readBlock(SETTINGS_START, (uint8_t *)defaults, sizeof(Settings));
     if (defaults->initialized != SETTINGS_MAGIC)
     {
         defaults->initialized = SETTINGS_MAGIC;
-        defaults->state = 0;
+        defaults->state = 0x8FFF;
         defaults->stepSize = 256;
         saveSettings(defaults);
     }
@@ -105,6 +106,8 @@ void loadSettings(Settings *defaults)
 
 void setup()
 {
+    EEPROM::init();
+
     // reset the I/O expander set
     // set both port to LED drive mode
     leds.reset();
@@ -151,6 +154,8 @@ void setup()
     if (conf.output == BootConfig::O_SERIAL)
     {
         Serial::begin(9600);
+        Serial::write((uint8_t)((settings.state >> 8) | 0xFF));
+        Serial::write((uint8_t)(settings.state | 0xFF));
     }
 
     initEncoderServiceTimer();
@@ -169,7 +174,7 @@ void loop()
         settings.state = 0xFFFF;
     }
     // check if we would underflow
-    else if ((stepCounts < 0) && (settings.state < -stepCounts))
+    else if ((stepCounts < 0) && (settings.state < (uint16_t)(-stepCounts)))
     {
         settings.state = 0;
     }
@@ -181,6 +186,11 @@ void loop()
     //output the new data on the selected method
     if (conf.output == BootConfig::O_SERIAL)
     {
+        if (steps != 0)
+        {
+            Serial::write((uint8_t)((settings.state >> 8) | 0xFF));
+            Serial::write((uint8_t)(settings.state | 0xFF));
+        }
     }
     else
     {
