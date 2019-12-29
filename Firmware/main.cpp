@@ -110,33 +110,33 @@ void setup()
 
     // setup pin IO direction
     // Mode Pin 1
-    DDRB &= ~(1 << PB4);
-    PORTB |= (1 << PB4);
+    DDRB &= ~(1 << MODE_PIN1);
+    PORTB |= (1 << MODE_PIN1);
 
     // Mode Pin 2
-    DDRB &= ~(1 << PB3);
-    PORTB |= (1 << PB3);
+    DDRB &= ~(1 << MODE_PIN2);
+    PORTB |= (1 << MODE_PIN2);
 
     // Encoder Switch
-    DDRB &= ~(1 << PB0);
-    PORTB |= (1 << PB0);
+    DDRB &= ~(1 << ENC_SW);
+    PORTB |= (1 << ENC_SW);
 
     // Encoder Pin A
-    DDRD &= ~(1 << PD3);
-    PORTD |= (1 << PD3);
+    DDRD &= ~(1 << ENC_A);
+    PORTD |= (1 << ENC_A);
 
     // Encoder Pin B
-    DDRD &= ~(1 << PD2);
-    PORTD |= (1 << PD2);
+    DDRD &= ~(1 << ENC_B);
+    PORTD |= (1 << ENC_B);
 
     // Output Pin 2
-    DDRD |= (1 << PD1);
+    DDRD |= (1 << OUT_P2);
 
     // Output Pin 3
-    DDRD |= (1 << PD0);
+    DDRD |= (1 << OUT_P3);
 
     // Output Pin 4
-    DDRB |= (1 << PB1);
+    DDRB |= (1 << OUT_P4);
 
     // get the bootup BootConfiguration
     conf.display = (!((PINB >> PB4) & 1)) ? BootConfig::D_BAR : BootConfig::D_DOT;
@@ -168,21 +168,21 @@ void loop()
     else
     {
         //Passthrough mode. simply copy the states to the output port
-        if ((PINB >> PB0) & 1)
+        if ((PINB >> ENC_SW) & 1)
         {
-            PORTB |= (1 << PB1);
+            PORTB |= (1 << OUT_P4);
         }
         else
         {
-            PORTB &= ~(1 << PB1);
+            PORTB &= ~(1 << OUT_P4);
         }
 
         uint8_t abs_steps = abs(steps);
         uint8_t dir = steps > 0 ? true : false;
 
         // emulate a gray code output from the encoder
-        uint8_t leadingEdgeLine = dir ? PD1 : PD0;
-        uint8_t trailingEdgeLine = dir ? PD0 : PD1;
+        uint8_t leadingEdgeLine = dir ? OUT_P2 : OUT_P3;
+        uint8_t trailingEdgeLine = dir ? OUT_P3 : OUT_P2;
         while (abs_steps > 0)
         {
             encLineState = !encLineState;
