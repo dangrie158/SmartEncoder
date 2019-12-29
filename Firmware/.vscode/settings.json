@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "*.s": "hexdump",
+        "climits": "cpp"
+    },
+    "C_Cpp.default.includePath": [
+        "/usr/local/Cellar/avr-gcc/8.3.0/avr/include",
+        "/usr/local/Cellar/avr-gcc/8.3.0/lib/avr-gcc/8/gcc/avr/8.3.0/include-fixed",
+        "/usr/local/Cellar/avr-gcc/8.3.0/lib/avr-gcc/8/gcc/avr/8.3.0/include"
+    ],
+    "editor.formatOnSave": true
+}
