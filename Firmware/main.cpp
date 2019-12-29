@@ -19,6 +19,7 @@
 #define ENCODER_STEP_DELAY_MS 1
 
 #define NUM_LEDS 16
+#define MAX_BRIGHT 32
 
 struct BootConfig
 {
@@ -45,7 +46,7 @@ struct Settings
 };
 
 AW9523B leds(0x58, PB6, &DDRB, &PORTB);
-Encoder encoder(PD3, PD2, &PORTD, &DDRD);
+Encoder encoder(PD3, PD2, &PIND, &DDRD);
 long encoderPos = -999;
 BootConfig conf;
 Settings settings;
@@ -125,7 +126,7 @@ void setup()
 
 void loop()
 {
-    static uint8_t encLineState = false;
+    /*static uint8_t encLineState = false;
     static uint16_t lastEncVal = 0;
 
     int8_t steps = encoder.getValue() - lastEncVal;
@@ -201,7 +202,16 @@ void loop()
         {
             leds.analogWrite(fullOnLed + 1, settings.state % 256);
         }
+    }*/
+
+    static uint8_t led = 0;
+    static uint8_t bright = 0;
+    leds.analogWrite(led, bright++);
+    if (bright == 255){
+        led += 1;
+        led %= NUM_LEDS;
     }
+    _delay_ms(10);
 }
 
 int main()
