@@ -11,8 +11,8 @@
 class Encoder
 {
 public:
-    Encoder(uint8_t channelA, uint8_t channelB, volatile uint8_t *pinReg, volatile uint8_t *ddrReg)
-        : pinA(channelA), pinB(channelB), pinReg(pinReg), steps(2), delta(0), last(0), acceleration(0)
+    Encoder(uint8_t channelA, uint8_t channelB, volatile uint8_t *pinReg, volatile uint8_t *ddrReg, uint8_t steps=4, bool inverse=true)
+        : pinA(channelA), pinB(channelB), pinReg(pinReg), steps(steps), inverse(inverse), delta(0), last(0), acceleration(0)
     {
         *ddrReg |= (1 << pinA) | (1 << pinB);
 
@@ -89,19 +89,19 @@ public:
         if (steps == 2)
             val >>= 1;
 
-        int16_t r = 0;
+        int16_t steps = 0;
         int16_t accel = acceleration >> 8;
 
         if (val < 0)
         {
-            r -= 1 + accel;
+            steps -= 1 + accel;
         }
         else if (val > 0)
         {
-            r += 1 + accel;
+            steps += 1 + accel;
         }
 
-        return r;
+        return inverse ? -steps : steps;
     }
 
 private:
@@ -109,6 +109,7 @@ private:
     volatile uint8_t *pinReg;
 
     uint8_t steps;
+    bool inverse;
     volatile int16_t delta;
     volatile int16_t last;
     volatile uint16_t acceleration;
