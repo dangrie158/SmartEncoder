@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdlib.h>
 #include "AW9523B.h"
@@ -50,6 +51,32 @@ Encoder encoder(PD3, PD2, &PIND, &DDRD);
 long encoderPos = -999;
 BootConfig conf;
 Settings settings;
+
+void initEncoderServiceTimer() {
+     cli(); 
+     
+     // 1000 count, match every 1ms, 1MHz clock, prescaller @ 1x
+     OCR1A = 1000; 
+
+     // CTC Mode
+     TCCR1B |= (1 << WGM12);
+
+     // set CS10, clock running, 1x prescaler
+     TCCR1B |= (1 << CS10);
+
+     // reset Timer/Counter prescaler
+     GTCCR |= (1 << PSR10);
+
+     // enable Timer1 compare interrupt
+     TIMSK |= (1 << OCIE1A);
+
+     // enable global interrupts
+     sei();
+}
+
+ISR(TIMER1_COMPA_vect){
+    encoder.service();
+}
 
 void saveSettings(Settings *defaults)
 {
@@ -122,6 +149,8 @@ void setup()
     {
         Serial::begin(9600);
     }
+
+    initEncoderServiceTimer();
 }
 
 void loop()
@@ -176,8 +205,6 @@ void loop()
     }
 
     //update the LED display
-    steps = 1;
-    _delay_ms(50);
     settings.state += settings.stepSize * steps;
     if (conf.display == BootConfig::D_BAR)
     {
