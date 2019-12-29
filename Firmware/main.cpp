@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "AW9523B.h"
 #include "Encoder.h"
 #include "Serial.h"
@@ -52,29 +53,31 @@ long encoderPos = -999;
 BootConfig conf;
 Settings settings;
 
-void initEncoderServiceTimer() {
-     cli(); 
-     
-     // 1000 count, match every 1ms, 1MHz clock, prescaller @ 1x
-     OCR1A = 1000; 
+void initEncoderServiceTimer()
+{
+    cli();
 
-     // CTC Mode
-     TCCR1B |= (1 << WGM12);
+    // 1000 count, match every 1ms, 1MHz clock, prescaller @ 1x
+    OCR1A = 1000;
 
-     // set CS10, clock running, 1x prescaler
-     TCCR1B |= (1 << CS10);
+    // CTC Mode
+    TCCR1B |= (1 << WGM12);
 
-     // reset Timer/Counter prescaler
-     GTCCR |= (1 << PSR10);
+    // set CS10, clock running, 1x prescaler
+    TCCR1B |= (1 << CS10);
 
-     // enable Timer1 compare interrupt
-     TIMSK |= (1 << OCIE1A);
+    // reset Timer/Counter prescaler
+    GTCCR |= (1 << PSR10);
 
-     // enable global interrupts
-     sei();
+    // enable Timer1 compare interrupt
+    TIMSK |= (1 << OCIE1A);
+
+    // enable global interrupts
+    sei();
 }
 
-ISR(TIMER1_COMPA_vect){
+ISR(TIMER1_COMPA_vect)
+{
     encoder.service();
 }
 
@@ -156,10 +159,24 @@ void setup()
 void loop()
 {
     static uint8_t encLineState = false;
-    static uint16_t lastEncVal = 0;
 
-    int8_t steps = encoder.getValue() - lastEncVal;
-    lastEncVal += steps;
+    int8_t steps = encoder.getValue();
+    int16_t stepCounts = settings.stepSize * steps;
+
+    // check if we would overflow
+    if ((stepCounts > 0) && (settings.state > 0xFFFF - stepCounts))
+    {
+        settings.state = 0xFFFF;
+    }
+    // check if we would underflow
+    else if ((stepCounts < 0) && (settings.state < -stepCounts))
+    {
+        settings.state = 0;
+    }
+    else
+    {
+        settings.state += stepCounts;
+    }
 
     //output the new data on the selected method
     if (conf.output == BootConfig::O_SERIAL)
@@ -205,7 +222,6 @@ void loop()
     }
 
     //update the LED display
-    settings.state += settings.stepSize * steps;
     if (conf.display == BootConfig::D_BAR)
     {
         uint8_t fullOnLeds = settings.state / (256 * NUM_LEDS);
@@ -242,10 +258,12 @@ void loop()
             else if (led == fullOnLed + 1)
             {
                 leds.analogWrite(NUM_LEDS - 1 - led, nextLEDState);
-            }else if (led == fullOnLed - 1)
+            }
+            else if (led == fullOnLed - 1)
             {
                 leds.analogWrite(NUM_LEDS - 1 - led, prevLEDState);
-            }else
+            }
+            else
             {
                 leds.analogWrite(NUM_LEDS - 1 - led, 0);
             }
